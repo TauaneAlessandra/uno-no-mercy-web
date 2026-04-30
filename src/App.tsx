@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card as CardI, Player, GameState, Color } from './types';
 import { createDeck, canPlayCard, shuffle, COLORS } from './utils/gameLogic';
-import { Trophy, RefreshCw, Zap, Skull } from 'lucide-react';
+import { Trophy, RefreshCw, Zap, Skull, Users, ShieldAlert } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import './App.css';
+import './index.css';
 
 const MERCY_LIMIT = 25;
 
@@ -39,7 +39,6 @@ const App: React.FC = () => {
 
   const [showWildModal, setShowWildModal] = useState(false);
   const [showSwapModal, setShowSwapModal] = useState(false);
-  const [selectionMode, setSelectionMode] = useState<'swap' | 'none'>('none');
   const [pendingCard, setPendingCard] = useState<CardI | null>(null);
   
   const [botCount, setBotCount] = useState(3);
@@ -167,10 +166,8 @@ const App: React.FC = () => {
          nextDrawStack += 4;
       }
 
-      // Simplified Roulette: Next player draws until color is found
       if (card.type === 'wildRoulette') {
-         // The next player will be handled by a special logic or just draw a lot
-         nextDrawStack += 5; // Placeholder for Roulette penalty
+         nextDrawStack += 5;
       }
 
       if (currentPlayer.hand.length === 0) {
@@ -213,12 +210,7 @@ const App: React.FC = () => {
 
   const playCard = (card: CardI) => {
     const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-    // if (currentPlayer.isBot && gameState.status === 'playing') return; // REMOVED THIS BLOCK
-
-
-    if (!canPlayCard(card, gameState.discardPile[gameState.discardPile.length - 1], gameState.currentColor, gameState.drawStack)) {
-      return;
-    }
+    if (!canPlayCard(card, gameState.discardPile[gameState.discardPile.length - 1], gameState.currentColor, gameState.drawStack)) return;
 
     if (card.color === 'black') {
       setPendingCard(card);
@@ -263,7 +255,7 @@ const App: React.FC = () => {
            setPendingCard(card);
            setShowSwapModal(true);
         } else {
-           const tIndex = 0; // Bot swaps with human
+           const tIndex = 0;
            const temp = newPlayers[pIndex].hand;
            newPlayers[pIndex].hand = newPlayers[tIndex].hand;
            newPlayers[tIndex].hand = temp;
@@ -286,7 +278,6 @@ const App: React.FC = () => {
     });
 
     if (card.type === 'swapHand' && !currentPlayer.isBot) return;
-
     const skipCount = card.type === 'skip' ? 2 : (card.type === 'skipEveryone' ? gameState.players.length : 1);
     nextTurn(skipCount);
   };
@@ -315,192 +306,257 @@ const App: React.FC = () => {
   }, [gameState.currentPlayerIndex, gameState.status, gameState.drawStack, gameState.currentColor, gameState.discardPile]);
 
   return (
-    <div className="game-container">
-      {gameState.status === 'lobby' && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lobby-screen">
-          <h1 className="title">UNO <span className="no-mercy">NO MERCY</span></h1>
-          <p className="subtitle">Uma batalha galáctica onde apenas o mais forte sobrevive.</p>
-          
-          <div className="setup-panel">
-            <div className="setup-section">
-              <h3>ESCOLHA SEU PERSONAGEM</h3>
-              <div className="char-grid">
-                {SELECTABLE_CHARACTERS.map(char => (
-                  <div 
-                    key={char.id} 
-                    className={`char-card ${selectedCharId === char.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedCharId(char.id)}
-                  >
-                    <img src={char.avatar} alt={char.name} />
-                    <span>{char.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="setup-section">
-              <h3>NÚMERO DE OPONENTES ({botCount})</h3>
-              <input 
-                type="range" 
-                min="1" 
-                max="6" 
-                value={botCount} 
-                onChange={(e) => setBotCount(parseInt(e.target.value))}
-                className="bot-slider"
-              />
-              <div className="bot-preview">
-                {ALL_BOTS.slice(0, botCount).map(bot => (
-                  <img key={bot.id} src={bot.avatar} alt={bot.name} title={bot.name} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <button className="start-btn" onClick={startGame}>INICIAR DUELO</button>
-
-          <div className="features">
-            <div className="feature"><Zap size={20} /> Stacking Infinito</div>
-            <div className="feature"><Skull size={20} /> Mercy Rule (25 cartas)</div>
-            <div className="feature"><RefreshCw size={20} /> 7 & 0 Rules</div>
-          </div>
-        </motion.div>
-      )}
-
-      {gameState.status === 'playing' && (
-        <div className="board">
-          <div className="top-bar">
-            <div className="current-color" style={{ backgroundColor: `var(--uno-${gameState.currentColor})` }}>
-              {gameState.currentColor.toUpperCase()}
-            </div>
-            {gameState.drawStack > 0 && (
-              <div className="draw-stack-alert">
-                ACUMULADO: +{gameState.drawStack}
-              </div>
-            )}
-          </div>
-
-          <div className="opponents">
-            {gameState.players.filter(p => p.isBot).map((bot) => (
-              <div key={bot.id} className={`opponent ${gameState.currentPlayerIndex === gameState.players.indexOf(bot) ? 'active' : ''}`}>
-                <div className="avatar">
-                  {bot.avatar ? <img src={bot.avatar} alt={bot.name} className="avatar-img" /> : bot.name[0]}
+    <div className="relative w-full h-screen flex justify-center items-center bg-slate-950 text-slate-50 overflow-hidden font-sans">
+      <div className="star-field" />
+      
+      <AnimatePresence mode="wait">
+        {gameState.status === 'lobby' && (
+          <motion.div 
+            key="lobby"
+            initial={{ opacity: 0, scale: 0.9 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            exit={{ opacity: 0, scale: 1.1 }}
+            className="relative z-10 w-full max-w-2xl p-8 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl text-center"
+          >
+            <h1 className="text-6xl font-black mb-2 tracking-tighter text-starwars-yellow uppercase">
+              UNO <span className="block text-3xl text-white opacity-90 -mt-2">NO MERCY</span>
+            </h1>
+            <p className="text-slate-400 mb-8 font-medium">A versão mais implacável do clássico, agora em uma galáxia distante.</p>
+            
+            <div className="space-y-8 mb-10">
+              <section className="text-left">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-jedi-blue mb-4">Escolha seu Herói</h3>
+                <div className="grid grid-cols-4 gap-4">
+                  {SELECTABLE_CHARACTERS.map(char => (
+                    <button 
+                      key={char.id} 
+                      onClick={() => setSelectedCharId(char.id)}
+                      className={`group relative flex flex-col items-center gap-2 p-3 rounded-2xl transition-all ${selectedCharId === char.id ? 'bg-jedi-blue/20 ring-1 ring-jedi-blue shadow-[0_0_20px_rgba(0,247,255,0.2)]' : 'bg-white/5 hover:bg-white/10'}`}
+                    >
+                      <img src={char.avatar} alt={char.name} className={`w-14 h-14 rounded-full border-2 transition-transform group-hover:scale-105 ${selectedCharId === char.id ? 'border-jedi-blue' : 'border-transparent'}`} />
+                      <span className="text-[10px] font-bold text-center leading-tight uppercase opacity-80">{char.name}</span>
+                    </button>
+                  ))}
                 </div>
-                <div className="info">
-                  <div className="name">{bot.name}</div>
-                  <div className="cards-count">{bot.hand.length} cartas</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              </section>
 
-          <div className="center-pile">
-            <div 
-              className={`deck-pile ${gameState.drawStack > 0 && gameState.currentPlayerIndex === 0 ? 'must-draw' : ''}`} 
-              onClick={() => gameState.currentPlayerIndex === 0 && drawCards(0, gameState.drawStack || 1)}
-            >
-              <div className="card-back">UNO</div>
-            </div>
-            <div className="discard-pile">
-              <AnimatePresence mode="popLayout">
-                <CardComponent 
-                  key={gameState.discardPile[gameState.discardPile.length - 1].id} 
-                  card={gameState.discardPile[gameState.discardPile.length - 1]} 
+              <section className="text-left">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-jedi-blue">Oponentes do Império</h3>
+                  <span className="text-sm font-bold text-starwars-yellow">{botCount} Bots</span>
+                </div>
+                <input 
+                  type="range" min="1" max="6" value={botCount} 
+                  onChange={(e) => setBotCount(parseInt(e.target.value))}
+                  className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-starwars-yellow mb-6"
                 />
-              </AnimatePresence>
+                <div className="flex justify-center gap-3 min-h-[40px]">
+                  {ALL_BOTS.slice(0, botCount).map(bot => (
+                    <motion.img layout key={bot.id} src={bot.avatar} className="w-10 h-10 rounded-full border border-white/20 opacity-60 grayscale hover:grayscale-0 transition-all" />
+                  ))}
+                </div>
+              </section>
             </div>
-          </div>
 
-          <div className="player-area">
-             <div className="player-info">
-                <div className="mercy-meter-container">
-                   <span className="mercy-label">ARSENAL DE BATALHA</span>
-                   <div className="mercy-bar">
-                      <div 
-                         className={`mercy-fill ${gameState.players[0].hand.length > 15 ? 'danger' : gameState.players[0].hand.length > 10 ? 'warning' : ''}`} 
-                         style={{ width: `${Math.min((gameState.players[0].hand.length / MERCY_LIMIT) * 100, 100)}%` }}
-                      />
+            <button 
+              onClick={startGame}
+              className="w-full py-4 bg-transparent border-2 border-starwars-yellow text-starwars-yellow font-black text-lg tracking-[0.2em] uppercase rounded-xl hover:bg-starwars-yellow hover:text-black transition-all shadow-[0_0_15px_rgba(255,232,31,0.2)] hover:shadow-[0_0_30px_rgba(255,232,31,0.4)] mb-8"
+            >
+              Iniciar Duelo
+            </button>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-wider justify-center"><Zap size={14} className="text-starwars-yellow" /> Stacking</div>
+              <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-wider justify-center"><Skull size={14} className="text-sith-red" /> 25 Cartas</div>
+              <div className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-wider justify-center"><RefreshCw size={14} className="text-jedi-blue" /> Regras 7/0</div>
+            </div>
+          </motion.div>
+        )}
+
+        {gameState.status === 'playing' && (
+          <div key="board" className="w-full h-full flex flex-col p-6 space-y-6">
+            <header className="flex justify-between items-center bg-slate-900/50 backdrop-blur-md p-4 rounded-2xl border border-white/5">
+               <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-lg flex items-center justify-center font-black text-black" style={{ backgroundColor: `var(--color-${gameState.currentColor === 'red' ? 'sith-red' : gameState.currentColor === 'blue' ? 'jedi-blue' : gameState.currentColor === 'green' ? 'yoda-green' : 'starwars-yellow'})` }}>
+                    {gameState.currentColor[0].toUpperCase()}
+                 </div>
+                 <span className="text-xs font-black tracking-widest uppercase opacity-60">Cor do Turno</span>
+               </div>
+               {gameState.drawStack > 0 && (
+                 <div className="flex items-center gap-2 px-4 py-2 bg-sith-red/20 border border-sith-red/50 rounded-full animate-pulse">
+                    <ShieldAlert size={16} className="text-sith-red" />
+                    <span className="text-xs font-black text-sith-red">ACUMULADO: +{gameState.drawStack}</span>
+                 </div>
+               )}
+               <div className="flex items-center gap-4">
+                  <div className="flex -space-x-2">
+                    {gameState.players.map((p, i) => (
+                      <div key={p.id} className={`w-8 h-8 rounded-full border-2 transition-all ${gameState.currentPlayerIndex === i ? 'border-jedi-blue scale-110 shadow-[0_0_10px_rgba(0,247,255,0.5)] z-10' : 'border-transparent opacity-40'}`}>
+                        <img src={p.avatar} className="w-full h-full rounded-full" />
+                      </div>
+                    ))}
+                  </div>
+               </div>
+            </header>
+
+            <main className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+              <section className="flex md:flex-col justify-center gap-4">
+                {gameState.players.filter(p => p.isBot).map((bot, i) => {
+                   const index = gameState.players.indexOf(bot);
+                   return (
+                    <div key={bot.id} className={`p-4 rounded-2xl border transition-all ${gameState.currentPlayerIndex === index ? 'bg-jedi-blue/10 border-jedi-blue shadow-[0_0_20px_rgba(0,247,255,0.1)]' : 'bg-white/5 border-white/5'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <img src={bot.avatar} className={`w-10 h-10 rounded-full border ${gameState.currentPlayerIndex === index ? 'border-jedi-blue' : 'border-white/20'}`} />
+                          <div className="absolute -bottom-1 -right-1 bg-slate-900 rounded-full px-1.5 py-0.5 text-[8px] font-black border border-white/10">{bot.hand.length}</div>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-white/80 leading-none mb-1">{bot.name}</span>
+                          <span className="text-[8px] font-bold uppercase text-white/40 leading-none">{gameState.currentPlayerIndex === index ? 'Analisando...' : 'Aguardando'}</span>
+                        </div>
+                      </div>
+                    </div>
+                   );
+                })}
+              </section>
+
+              <section className="md:col-span-2 flex justify-center items-center gap-12 py-12">
+                <button 
+                  onClick={() => gameState.currentPlayerIndex === 0 && drawCards(0, gameState.drawStack || 1)}
+                  className={`group relative w-32 h-48 rounded-xl border-2 border-white/10 transition-all flex items-center justify-center font-black text-2xl tracking-[0.2em] bg-slate-900 shadow-2xl ${gameState.currentPlayerIndex === 0 ? 'hover:border-starwars-yellow hover:shadow-[0_0_30px_rgba(255,232,31,0.2)] scale-105' : 'opacity-80 grayscale cursor-not-allowed'}`}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-[9px]" />
+                  <span className="text-white/20 group-hover:text-starwars-yellow transition-colors">UNO</span>
+                </button>
+
+                <div className="w-32 h-48 flex items-center justify-center">
+                  <AnimatePresence mode="popLayout">
+                    <CardComponent 
+                      key={gameState.discardPile[gameState.discardPile.length - 1].id} 
+                      card={gameState.discardPile[gameState.discardPile.length - 1]} 
+                    />
+                  </AnimatePresence>
+                </div>
+              </section>
+
+              <section className="hidden md:flex flex-col gap-4 text-center opacity-40">
+                 <div className="p-4 rounded-2xl border border-white/5 bg-white/5">
+                    <Users className="mx-auto mb-2" size={24} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Controle Tático</span>
+                 </div>
+              </section>
+            </main>
+
+            <footer className="hologram-panel p-6">
+              <div className="flex justify-between items-end mb-6">
+                <div className="space-y-2">
+                   <h3 className="text-[10px] font-black tracking-[0.3em] text-jedi-blue uppercase opacity-80">Arsenal de Batalha</h3>
+                   <div className="flex items-center gap-3">
+                      <div className="w-48 h-2 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                        <motion.div 
+                          initial={false}
+                          animate={{ 
+                            width: `${Math.min((gameState.players[0].hand.length / MERCY_LIMIT) * 100, 100)}%`,
+                            backgroundColor: gameState.players[0].hand.length > 18 ? '#ff0000' : gameState.players[0].hand.length > 12 ? '#FFE81F' : '#00f7ff'
+                          }}
+                          className="h-full shadow-[0_0_10px_currentColor]"
+                        />
+                      </div>
+                      <span className="text-sm font-black font-mono tracking-tighter">{gameState.players[0].hand.length} / {MERCY_LIMIT}</span>
                    </div>
-                   <span className="mercy-count">{gameState.players[0].hand.length} / {MERCY_LIMIT}</span>
                 </div>
                 {gameState.currentPlayerIndex === 0 && (
-                  <motion.span 
-                    initial={{ scale: 0.8, opacity: 0 }} 
-                    animate={{ scale: 1, opacity: 1 }} 
-                    className="turn-indicator"
-                  >
-                    COMANDO ATIVO
-                  </motion.span>
+                  <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="px-6 py-2 bg-jedi-blue/20 border border-jedi-blue/50 rounded-lg shadow-[0_0_15px_rgba(0,247,255,0.2)]">
+                    <span className="text-xs font-black text-jedi-blue tracking-[0.2em] uppercase">Seu Turno</span>
+                  </motion.div>
                 )}
-             </div>
-             <div className="hand-container">
-                {gameState.players[0].hand.map((card) => {
-                  const isPlayable = canPlayCard(
-                    card, 
-                    gameState.discardPile[gameState.discardPile.length - 1], 
-                    gameState.currentColor, 
-                    gameState.drawStack
-                  );
+              </div>
+
+              <div className="flex justify-center gap-2 h-40 overflow-x-auto pb-4 px-8 scrollbar-hide">
+                {gameState.players[0].hand.map((card, idx) => {
+                  const isPlayable = canPlayCard(card, gameState.discardPile[gameState.discardPile.length - 1], gameState.currentColor, gameState.drawStack);
                   return (
-                    <CardComponent 
-                      key={card.id} 
-                      card={card} 
-                      onClick={() => playCard(card)}
-                      disabled={gameState.currentPlayerIndex !== 0 || !isPlayable}
-                      isUnplayable={gameState.currentPlayerIndex === 0 && !isPlayable}
-                    />
+                    <div key={card.id} style={{ marginLeft: idx === 0 ? 0 : -40 }}>
+                      <CardComponent 
+                        card={card} 
+                        onClick={() => playCard(card)}
+                        disabled={gameState.currentPlayerIndex !== 0 || !isPlayable}
+                        isUnplayable={gameState.currentPlayerIndex === 0 && !isPlayable}
+                      />
+                    </div>
                   );
                 })}
-             </div>
+              </div>
+            </footer>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
-      {gameState.status === 'gameOver' && (
-        <motion.div className="game-over" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          <Trophy size={80} color="var(--accent)" />
-          <h2>{gameState.winner?.name} Venceu!</h2>
-          <button className="start-btn" onClick={startGame}>RECOMEÇAR</button>
-        </motion.div>
-      )}
-
-      {showWildModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Escolha uma cor</h3>
-            <div className="color-grid">
-              {COLORS.map(c => (
-                <div key={c} className="color-option" style={{ backgroundColor: `var(--uno-${c})` }} onClick={() => handleWildChoice(c)} />
-              ))}
-            </div>
+      {/* Modals */}
+      <AnimatePresence>
+        {gameState.status === 'gameOver' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm p-8 bg-slate-900 border border-starwars-yellow/30 rounded-3xl text-center shadow-[0_0_50px_rgba(255,232,31,0.1)]">
+              <Trophy size={64} className="mx-auto mb-6 text-starwars-yellow animate-bounce" />
+              <h2 className="text-2xl font-black uppercase tracking-wider mb-2">{gameState.winner?.name}</h2>
+              <p className="text-slate-400 font-bold text-sm mb-8">Dominou a Galáxia!</p>
+              <button onClick={startGame} className="w-full py-4 bg-starwars-yellow text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-transform">Recomeçar</button>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showSwapModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Escolha com quem trocar de mão</h3>
-            <div className="player-selection">
-               {gameState.players.filter(p => p.id !== 'player').map(p => (
-                 <button key={p.id} className="player-btn" onClick={() => handleSwapChoice(p.id)}>
-                   {p.name} ({p.hand.length} cartas)
-                 </button>
-               ))}
-            </div>
+        {showWildModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md">
+            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-xs p-6 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl text-center">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-6">Escolha a Cor da Força</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {COLORS.map(c => (
+                  <button 
+                    key={c} 
+                    onClick={() => handleWildChoice(c)}
+                    className="aspect-square rounded-xl border-2 border-white/5 transition-all hover:scale-110 shadow-lg"
+                    style={{ backgroundColor: `var(--color-${c === 'red' ? 'sith-red' : c === 'blue' ? 'jedi-blue' : c === 'green' ? 'yoda-green' : 'starwars-yellow'})` }}
+                  />
+                ))}
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+
+        {showSwapModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md">
+             <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-sm p-8 bg-slate-900 border border-jedi-blue/30 rounded-3xl shadow-[0_0_30px_rgba(0,247,255,0.1)]">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-jedi-blue text-center mb-8">Trocar Arsenal com Alvo</h3>
+                <div className="space-y-3">
+                   {gameState.players.filter(p => p.id !== 'player').map(p => (
+                     <button 
+                        key={p.id} 
+                        onClick={() => handleSwapChoice(p.id)}
+                        className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-jedi-blue/10 border border-white/10 hover:border-jedi-blue rounded-xl transition-all group"
+                      >
+                       <div className="flex items-center gap-3">
+                         <img src={p.avatar} className="w-8 h-8 rounded-full" />
+                         <span className="text-xs font-black uppercase tracking-wider group-hover:text-jedi-blue">{p.name}</span>
+                       </div>
+                       <span className="text-[10px] font-bold opacity-40">{p.hand.length} Cartas</span>
+                     </button>
+                   ))}
+                </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
 const CardComponent = React.forwardRef<HTMLDivElement, { card: CardI, onClick?: () => void, disabled?: boolean, isUnplayable?: boolean }>(
   ({ card, onClick, disabled, isUnplayable }, ref) => {
-    const getCardContent = () => {
+    const getContent = () => {
       switch (card.type) {
         case 'number': return card.value;
-        case 'skip': return '∅';
-        case 'reverse': return '⇄';
+        case 'skip': return 'SKIP';
+        case 'reverse': return 'REV';
         case 'draw2': return '+2';
         case 'draw4': return '+4';
         case 'draw6': return '+6';
@@ -508,30 +564,44 @@ const CardComponent = React.forwardRef<HTMLDivElement, { card: CardI, onClick?: 
         case 'wild': return 'W';
         case 'wildDraw6': return '+6';
         case 'wildDraw10': return '+10';
-        case 'wildReverseDraw4': return '⇄+4';
-        case 'wildRoulette': return '🎡';
-        case 'discardAll': return '⊘';
-        case 'skipEveryone': return '!!!';
-        case 'swapHand': return '🤝';
-        case 'rotateHands': return '♻️';
+        case 'wildReverseDraw4': return 'REV+4';
+        case 'wildRoulette': return 'WHEEL';
+        case 'discardAll': return 'CLEAR';
+        case 'skipEveryone': return 'ALL-S';
+        case 'swapHand': return '7';
+        case 'rotateHands': return '0';
         default: return '';
       }
     };
 
+    const colorClass = card.color === 'red' ? 'bg-sith-red shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] border-sith-red' : 
+                       card.color === 'blue' ? 'bg-jedi-blue shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] border-jedi-blue' : 
+                       card.color === 'green' ? 'bg-yoda-green shadow-[inset_0_0_20_rgba(0,0,0,0.5)] border-yoda-green' : 
+                       card.color === 'yellow' ? 'bg-starwars-yellow shadow-[inset_0_0_20_rgba(0,0,0,0.5)] border-starwars-yellow' : 
+                       'bg-slate-900 border-white/20';
+
+    const glowColor = card.color === 'red' ? 'rgba(255,0,0,0.4)' : 
+                       card.color === 'blue' ? 'rgba(0,247,255,0.4)' : 
+                       card.color === 'green' ? 'rgba(57,255,20,0.4)' : 
+                       card.color === 'yellow' ? 'rgba(255,232,31,0.4)' : 
+                       'rgba(255,255,255,0.1)';
+
     return (
       <motion.div
         ref={ref}
-        initial={{ opacity: 0, y: 30 }}
+        layout
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        whileHover={!disabled ? { y: -15, zIndex: 10 } : {}}
-        className={`card ${card.color} ${disabled ? 'disabled' : ''} ${isUnplayable ? 'unplayable' : ''}`}
+        exit={{ opacity: 0, scale: 0.8 }}
+        whileHover={!disabled ? { y: -20, scale: 1.05, zIndex: 50 } : {}}
         onClick={!disabled ? onClick : undefined}
+        className={`relative w-28 h-40 rounded-lg p-1.5 border transition-all ${colorClass} ${disabled ? 'grayscale brightness-50 opacity-40 cursor-not-allowed' : 'cursor-pointer hover:shadow-[0_0_25px_var(--glow)]'} ${isUnplayable ? 'brightness-50' : ''}`}
+        style={{ '--glow': glowColor } as any}
       >
-        <div className="card-inner">
-          <div className="top-left">{getCardContent()}</div>
-          <div className="center">{getCardContent()}</div>
-          <div className="bottom-right">{getCardContent()}</div>
+        <div className="w-full h-full border border-white/20 rounded-md flex items-center justify-center relative overflow-hidden bg-black/20">
+          <span className="text-2xl font-black italic tracking-tighter text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{getContent()}</span>
+          <div className="absolute top-1 left-1.5 text-[8px] font-black opacity-80">{getContent()}</div>
+          <div className="absolute bottom-1 right-1.5 text-[8px] font-black opacity-80">{getContent()}</div>
         </div>
       </motion.div>
     );
