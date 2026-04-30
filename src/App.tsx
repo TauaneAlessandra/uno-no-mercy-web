@@ -87,7 +87,7 @@ const App: React.FC = () => {
       currentColor: firstCard.color,
       mercyLimit: MERCY_LIMIT
     });
-  }, []);
+  }, [botCount, selectedCharId]);
 
   const nextTurn = useCallback((skipCount = 1) => {
     setGameState(prev => {
@@ -471,21 +471,6 @@ const App: React.FC = () => {
               {COLORS.map(c => (
                 <div key={c} className="color-option" style={{ backgroundColor: `var(--uno-${c})` }} onClick={() => handleWildChoice(c)} />
               ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showSwapModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Escolha com quem trocar de mão</h3>
-            <div className="player-selection">
-               {gameState.players.filter(p => p.id !== 'player').map(p => (
-                 <button key={p.id} className="player-btn" onClick={() => handleSwapChoice(p.id)}>
-                   {p.name} ({p.hand.length} cartas)
-                 </button>
-               ))}
             </div>
           </div>
         </div>
