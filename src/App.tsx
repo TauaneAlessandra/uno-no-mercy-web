@@ -8,6 +8,22 @@ import './App.css';
 
 const MERCY_LIMIT = 25;
 
+const SELECTABLE_CHARACTERS = [
+  { id: 'luke', name: 'Luke Skywalker', avatar: '/src/assets/avatars/luke.png' },
+  { id: 'leia', name: 'Leia Organa', avatar: '/src/assets/avatars/leia.png' },
+  { id: 'han', name: 'Han Solo', avatar: '/src/assets/avatars/han.png' },
+  { id: 'yoda', name: 'Mestre Yoda', avatar: '/src/assets/avatars/yoda.png' },
+];
+
+const ALL_BOTS = [
+  { id: 'vader', name: 'Darth Vader', avatar: '/src/assets/avatars/vader.png' },
+  { id: 'r2d2', name: 'R2-D2', avatar: '/src/assets/avatars/r2d2.png' },
+  { id: 'chewie', name: 'Chewbacca', avatar: '/src/assets/avatars/chewbacca.png' },
+  { id: 'boba', name: 'Boba Fett', avatar: '/src/assets/avatars/boba.png' },
+  { id: 'storm', name: 'Stormtrooper', avatar: '/src/assets/avatars/stormtrooper.png' },
+  { id: 'grievous', name: 'Gen. Grievous', avatar: '/src/assets/avatars/grievous.png' },
+];
+
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
     deck: [],
@@ -25,15 +41,29 @@ const App: React.FC = () => {
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [selectionMode, setSelectionMode] = useState<'swap' | 'none'>('none');
   const [pendingCard, setPendingCard] = useState<CardI | null>(null);
+  
+  const [botCount, setBotCount] = useState(3);
+  const [selectedCharId, setSelectedCharId] = useState(SELECTABLE_CHARACTERS[0].id);
 
   const startGame = useCallback(() => {
     const fullDeck = createDeck();
+    const userChar = SELECTABLE_CHARACTERS.find(c => c.id === selectedCharId)!;
+    
     const players: Player[] = [
-      { id: 'player', name: 'Você', hand: [], isBot: false, score: 0 },
-      { id: 'bot1', name: 'Darth Vader', hand: [], isBot: true, score: 0, avatar: '/src/assets/avatars/vader.png' },
-      { id: 'bot2', name: 'R2-D2', hand: [], isBot: true, score: 0, avatar: '/src/assets/avatars/r2d2.png' },
-      { id: 'bot3', name: 'Chewbacca', hand: [], isBot: true, score: 0, avatar: '/src/assets/avatars/chewbacca.png' },
+      { id: 'player', name: userChar.name, hand: [], isBot: false, score: 0, avatar: userChar.avatar },
     ];
+
+    for (let i = 0; i < botCount; i++) {
+      const botTemplate = ALL_BOTS[i];
+      players.push({ 
+        id: `bot${i+1}`, 
+        name: botTemplate.name, 
+        hand: [], 
+        isBot: true, 
+        score: 0, 
+        avatar: botTemplate.avatar 
+      });
+    }
 
     for (let i = 0; i < 7; i++) {
       players.forEach(p => p.hand.push(fullDeck.pop()!));
@@ -290,12 +320,49 @@ const App: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lobby-screen">
           <h1 className="title">UNO <span className="no-mercy">NO MERCY</span></h1>
           <p className="subtitle">Uma batalha galáctica onde apenas o mais forte sobrevive.</p>
+          
+          <div className="setup-panel">
+            <div className="setup-section">
+              <h3>ESCOLHA SEU PERSONAGEM</h3>
+              <div className="char-grid">
+                {SELECTABLE_CHARACTERS.map(char => (
+                  <div 
+                    key={char.id} 
+                    className={`char-card ${selectedCharId === char.id ? 'selected' : ''}`}
+                    onClick={() => setSelectedCharId(char.id)}
+                  >
+                    <img src={char.avatar} alt={char.name} />
+                    <span>{char.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="setup-section">
+              <h3>NÚMERO DE OPONENTES ({botCount})</h3>
+              <input 
+                type="range" 
+                min="1" 
+                max="6" 
+                value={botCount} 
+                onChange={(e) => setBotCount(parseInt(e.target.value))}
+                className="bot-slider"
+              />
+              <div className="bot-preview">
+                {ALL_BOTS.slice(0, botCount).map(bot => (
+                  <img key={bot.id} src={bot.avatar} alt={bot.name} title={bot.name} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <button className="start-btn" onClick={startGame}>INICIAR DUELO</button>
+
           <div className="features">
             <div className="feature"><Zap size={20} /> Stacking Infinito</div>
             <div className="feature"><Skull size={20} /> Mercy Rule (25 cartas)</div>
-            <div className="feature"><RefreshCw size={20} /> Cartas +6 e +10</div>
+            <div className="feature"><RefreshCw size={20} /> 7 & 0 Rules</div>
           </div>
-          <button className="start-btn" onClick={startGame}>JOGAR AGORA</button>
         </motion.div>
       )}
 
@@ -345,8 +412,25 @@ const App: React.FC = () => {
 
           <div className="player-area">
              <div className="player-info">
-                <h3>Sua Mão ({gameState.players[0].hand.length}/{MERCY_LIMIT})</h3>
-                {gameState.currentPlayerIndex === 0 && <span className="turn-indicator">SUA VEZ!</span>}
+                <div className="mercy-meter-container">
+                   <span className="mercy-label">ARSENAL DE BATALHA</span>
+                   <div className="mercy-bar">
+                      <div 
+                         className={`mercy-fill ${gameState.players[0].hand.length > 15 ? 'danger' : gameState.players[0].hand.length > 10 ? 'warning' : ''}`} 
+                         style={{ width: `${Math.min((gameState.players[0].hand.length / MERCY_LIMIT) * 100, 100)}%` }}
+                      />
+                   </div>
+                   <span className="mercy-count">{gameState.players[0].hand.length} / {MERCY_LIMIT}</span>
+                </div>
+                {gameState.currentPlayerIndex === 0 && (
+                  <motion.span 
+                    initial={{ scale: 0.8, opacity: 0 }} 
+                    animate={{ scale: 1, opacity: 1 }} 
+                    className="turn-indicator"
+                  >
+                    COMANDO ATIVO
+                  </motion.span>
+                )}
              </div>
              <div className="hand-container">
                 {gameState.players[0].hand.map((card) => {
