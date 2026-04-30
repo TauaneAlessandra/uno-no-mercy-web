@@ -31,6 +31,7 @@ export interface Player {
   hand: Card[];
   isBot: boolean;
   score: number;
+  avatar?: string;
 }
 
 export interface GameState {

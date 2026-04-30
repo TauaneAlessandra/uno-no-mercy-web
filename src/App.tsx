@@ -30,9 +30,9 @@ const App: React.FC = () => {
     const fullDeck = createDeck();
     const players: Player[] = [
       { id: 'player', name: 'Você', hand: [], isBot: false, score: 0 },
-      { id: 'bot1', name: 'Robo Alpha', hand: [], isBot: true, score: 0 },
-      { id: 'bot2', name: 'Robo Beta', hand: [], isBot: true, score: 0 },
-      { id: 'bot3', name: 'Robo Gamma', hand: [], isBot: true, score: 0 },
+      { id: 'bot1', name: 'Darth Vader', hand: [], isBot: true, score: 0, avatar: '/src/assets/avatars/vader.png' },
+      { id: 'bot2', name: 'R2-D2', hand: [], isBot: true, score: 0, avatar: '/src/assets/avatars/r2d2.png' },
+      { id: 'bot3', name: 'Chewbacca', hand: [], isBot: true, score: 0, avatar: '/src/assets/avatars/chewbacca.png' },
     ];
 
     for (let i = 0; i < 7; i++) {
@@ -289,7 +289,7 @@ const App: React.FC = () => {
       {gameState.status === 'lobby' && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lobby-screen">
           <h1 className="title">UNO <span className="no-mercy">NO MERCY</span></h1>
-          <p className="subtitle">Prepare-se para a versão mais implacável do clássico.</p>
+          <p className="subtitle">Uma batalha galáctica onde apenas o mais forte sobrevive.</p>
           <div className="features">
             <div className="feature"><Zap size={20} /> Stacking Infinito</div>
             <div className="feature"><Skull size={20} /> Mercy Rule (25 cartas)</div>
@@ -315,7 +315,9 @@ const App: React.FC = () => {
           <div className="opponents">
             {gameState.players.filter(p => p.isBot).map((bot) => (
               <div key={bot.id} className={`opponent ${gameState.currentPlayerIndex === gameState.players.indexOf(bot) ? 'active' : ''}`}>
-                <div className="avatar">{bot.name[0]}</div>
+                <div className="avatar">
+                  {bot.avatar ? <img src={bot.avatar} alt={bot.name} className="avatar-img" /> : bot.name[0]}
+                </div>
                 <div className="info">
                   <div className="name">{bot.name}</div>
                   <div className="cards-count">{bot.hand.length} cartas</div>
@@ -423,45 +425,48 @@ const App: React.FC = () => {
   );
 };
 
-const CardComponent: React.FC<{ card: CardI, onClick?: () => void, disabled?: boolean, isUnplayable?: boolean }> = ({ card, onClick, disabled, isUnplayable }) => {
-  const getCardContent = () => {
-    switch (card.type) {
-      case 'number': return card.value;
-      case 'skip': return '∅';
-      case 'reverse': return '⇄';
-      case 'draw2': return '+2';
-      case 'draw4': return '+4';
-      case 'draw6': return '+6';
-      case 'draw10': return '+10';
-      case 'wild': return 'W';
-      case 'wildDraw6': return '+6';
-      case 'wildDraw10': return '+10';
-      case 'wildReverseDraw4': return '⇄+4';
-      case 'wildRoulette': return '🎡';
-      case 'discardAll': return '⊘';
-      case 'skipEveryone': return '!!!';
-      case 'swapHand': return '🤝';
-      case 'rotateHands': return '♻️';
-      default: return '';
-    }
-  };
+const CardComponent = React.forwardRef<HTMLDivElement, { card: CardI, onClick?: () => void, disabled?: boolean, isUnplayable?: boolean }>(
+  ({ card, onClick, disabled, isUnplayable }, ref) => {
+    const getCardContent = () => {
+      switch (card.type) {
+        case 'number': return card.value;
+        case 'skip': return '∅';
+        case 'reverse': return '⇄';
+        case 'draw2': return '+2';
+        case 'draw4': return '+4';
+        case 'draw6': return '+6';
+        case 'draw10': return '+10';
+        case 'wild': return 'W';
+        case 'wildDraw6': return '+6';
+        case 'wildDraw10': return '+10';
+        case 'wildReverseDraw4': return '⇄+4';
+        case 'wildRoulette': return '🎡';
+        case 'discardAll': return '⊘';
+        case 'skipEveryone': return '!!!';
+        case 'swapHand': return '🤝';
+        case 'rotateHands': return '♻️';
+        default: return '';
+      }
+    };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      whileHover={!disabled ? { y: -15, zIndex: 10 } : {}}
-      className={`card ${card.color} ${disabled ? 'disabled' : ''} ${isUnplayable ? 'unplayable' : ''}`}
-      onClick={!disabled ? onClick : undefined}
-    >
-      <div className="card-inner">
-        <div className="top-left">{getCardContent()}</div>
-        <div className="center">{getCardContent()}</div>
-        <div className="bottom-right">{getCardContent()}</div>
-      </div>
-    </motion.div>
-  );
-};
+    return (
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        whileHover={!disabled ? { y: -15, zIndex: 10 } : {}}
+        className={`card ${card.color} ${disabled ? 'disabled' : ''} ${isUnplayable ? 'unplayable' : ''}`}
+        onClick={!disabled ? onClick : undefined}
+      >
+        <div className="card-inner">
+          <div className="top-left">{getCardContent()}</div>
+          <div className="center">{getCardContent()}</div>
+          <div className="bottom-right">{getCardContent()}</div>
+        </div>
+      </motion.div>
+    );
+  }
+);
 
 export default App;
