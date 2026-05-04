@@ -5,6 +5,31 @@
   --color-sith-red: #ff0000;
   --color-jedi-blue: #00f7ff;
   --color-yoda-green: #39ff14;
+
+  --animate-star-drift: star-drift 100s linear infinite;
+  --animate-hologram-flicker: hologram-flicker 5s infinite;
+
+  @keyframes star-drift {
+    from { transform: translateY(0); }
+    to { transform: translateY(-550px); }
+  }
+
+  @keyframes hologram-flicker {
+    0% { opacity: 0.9; }
+    5% { opacity: 0.5; }
+    10% { opacity: 0.9; }
+    15% { opacity: 0.8; }
+    20% { opacity: 0.9; }
+    25% { opacity: 0.3; }
+    30% { opacity: 0.9; }
+    100% { opacity: 0.95; }
+  }
+
+  @keyframes thumb-pulse {
+    0% { box-shadow: 0 0 10px rgba(255, 232, 31, 0.5); }
+    50% { box-shadow: 0 0 25px rgba(255, 232, 31, 0.8); }
+    100% { box-shadow: 0 0 10px rgba(255, 232, 31, 0.5); }
+  }
 }
 
 @layer base {
@@ -21,10 +46,12 @@
       radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
       radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px);
     background-size: 550px 550px, 350px 350px;
+    animation: star-drift 100s linear infinite;
   }
   
   .hologram-panel {
     @apply relative overflow-hidden bg-slate-900/80 border border-jedi-blue/30 rounded-lg shadow-[0_0_15px_rgba(0,247,255,0.1)];
+    animation: hologram-flicker 5s infinite;
   }
 
   .hologram-panel::after {
@@ -32,5 +59,90 @@
     @apply absolute inset-0 pointer-events-none;
     background: linear-gradient(rgba(0, 247, 255, 0) 50%, rgba(0, 247, 255, 0.05) 50%);
     background-size: 100% 4px;
+  }
+
+  .custom-range {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .custom-range::-webkit-slider-runnable-track {
+    background: rgba(255, 255, 255, 0.1);
+    height: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .custom-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -6px;
+    background-color: #FFE81F; /* starwars-yellow */
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 232, 31, 0.5);
+    transition: all 0.2s ease;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    animation: thumb-pulse 2s infinite ease-in-out;
+  }
+
+  .custom-range:hover::-webkit-slider-thumb {
+    box-shadow: 0 0 20px rgba(255, 232, 31, 0.8);
+    transform: scale(1.2);
+  }
+
+  .custom-range::-moz-range-track {
+    background: rgba(255, 255, 255, 0.1);
+    height: 0.5rem;
+    border-radius: 9999px;
+  }
+
+  .custom-range::-moz-range-thumb {
+    background-color: #FFE81F;
+    height: 1.25rem;
+    width: 1.25rem;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 10px rgba(255, 232, 31, 0.5);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .custom-range:hover::-moz-range-thumb {
+    box-shadow: 0 0 20px rgba(255, 232, 31, 0.8);
+    transform: scale(1.2);
+  }
+
+  .game-card {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .game-card:hover {
+    @apply -translate-y-8 z-50;
+  }
+
+  .active-player-glow {
+    box-shadow: 0 0 20px rgba(0, 247, 255, 0.4);
+  }
+
+  .direction-indicator {
+    @apply relative w-24 h-24 flex items-center justify-center;
+  }
+
+  .direction-arrow {
+    @apply absolute w-full h-full border-2 border-dashed border-jedi-blue/20 rounded-full;
+    animation: spin 10s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .direction-arrow.reverse {
+    animation-direction: reverse;
   }
 }

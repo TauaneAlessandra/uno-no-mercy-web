@@ -1,37 +1,48 @@
-# 🃏 Uno Show 'Em No Mercy - Web Edition
+# 🌌 Uno No Mercy: Star Wars Edition
 
-Uma recriação web ultra-moderna, fluida e implacável do jogo de cartas mais brutal da Mattel: **Uno Show 'Em No Mercy**. Desenvolvido com foco em performance, design premium e fidelidade total às regras extremas.
+![Uno No Mercy Star Wars Banner](./src/assets/banner.png)
 
-![Uno No Mercy Banner](https://img.shields.io/badge/UNO-NO%20MERCY-red?style=for-the-badge&logo=unocards)
-![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
-![TypeScript](https://img.shields.io/badge/typescript-%23007acc.svg?style=for-the-badge&logo=typescript&logoColor=white)
-![Framer Motion](https://img.shields.io/badge/Framer-Motion-black?style=for-the-badge&logo=framer)
+Uma recriação web ultra-moderna, fluida e implacável do jogo de cartas mais brutal da Mattel, agora ambientada em uma galáxia muito, muito distante. **Uno No Mercy: Star Wars Edition** combina as regras extremas do "Show 'Em No Mercy" com uma estética sci-fi premium, hologramas interativos e uma arquitetura de código de ponta.
+
+---
 
 ## 😈 Sem Misericórdia, Sem Limites
 
-Diferente do Uno clássico, esta versão foi projetada para ser rápida, estratégica e punitiva. Se você está procurando amizade, veio ao lugar errado.
+Diferente do Uno clássico, esta versão foi projetada para ser rápida, estratégica e punitiva. Aqui, a Força nem sempre estará com você.
 
-### 🔥 Funcionalidades Implementadas:
-
-- **Regra do Empilhamento (Stacking)**: Acumule punições! Responda a um +2 com +2 ou superior, ou a um +6 com +6 ou +10. O acumulado cresce até alguém não ter como revidar.
-- **Regra da Misericórdia**: Se um jogador atingir **25 cartas na mão**, ele é eliminado instantaneamente do jogo.
-- **Comprar até Jogar**: Não tem a carta? Você continuará comprando do monte até encontrar uma que possa ser jogada.
+### 🔥 Mecânicas Implacáveis:
+- **Regra da Misericórdia (Mercy Rule)**: Se um jogador atingir **25 cartas na mão**, ele é eliminado instantaneamente por excesso de carga de energia.
+- **Acúmulo de Punição (Stacking)**: Responda a um +2 com +2 ou superior, ou a um +6 com +6 ou +10. O acumulado cresce exponencialmente até que alguém não consiga revidar.
+- **Comprar até Jogar**: Não há limite de compra. Você continuará drenando o deck até encontrar uma carta que possa ser jogada.
 - **Cartas de Ação Brutais**:
-  - **7 (Troca de Mão)**: Escolha um oponente e troque sua mão inteira com a dele.
-  - **0 (Rodar Mãos)**: Todos os jogadores passam suas cartas para o próximo na direção do jogo.
-  - **Pular Todos**: Jogue e ganhe um novo turno imediatamente.
-  - **Descartar Tudo**: Livre-se de todas as cartas de uma mesma cor de uma só vez.
-- **Novos Curingas**:
-  - **Inverso +4**: Inverte o sentido e pune o novo próximo jogador.
-  - **Roleta Curinga**: Força o próximo jogador a escolher uma cor e comprar até encontrá-la.
+  - **7 (Troca de Mão)**: Escolha um oponente e troque seu arsenal inteiro com o dele.
+  - **0 (Rodar Mãos)**: Todos os jogadores passam suas cartas adiante, seguindo o fluxo da Força.
+  - **Pular Todos**: Execute seu movimento e ganhe um novo turno imediatamente, deixando todos para trás.
+  - **Descartar Tudo**: Limpe todas as cartas de uma mesma cor da sua mão de uma só vez.
 
-## 🛠️ Tecnologias Utilizadas
+---
 
-- **React 18** - UI reativa e componentes modulares.
-- **TypeScript** - Tipagem estrita para um motor de jogo robusto e sem bugs.
-- **Framer Motion** - Animações fluidas e otimizadas para uma experiência premium.
-- **Lucide React** - Ícones modernos e elegantes.
-- **Vite** - Build ultra-rápido e ambiente de desenvolvimento ágil.
+## 🎨 Design & Experiência do Usuário (UX)
+
+O projeto foi construído para proporcionar uma experiência imersiva e visualmente deslumbrante:
+
+- **Interface Holográfica**: Modais e painéis com estética de hologramas, linhas de scan e efeitos de brilho neon.
+- **Animações de Trajetória**: As cartas possuem movimento físico real da mão do jogador até o monte de descarte através de `layoutId`.
+- **Modo Dark Premium**: Paleta de cores cuidadosamente selecionada (Sith Red, Jedi Blue, Yoda Green, Star Yellow) sobre um fundo de espaço profundo.
+- **Lobby Dinâmico**: Seleção de personagens icônicos e ajuste de bots com feedback visual em tempo real.
+
+---
+
+## 🏗️ Arquitetura Técnica
+
+O sistema foi refatorado para seguir os mais altos padrões de desenvolvimento moderno:
+
+- **Modularização**: Interface dividida em componentes específicos (`Lobby`, `GameBoard`, `PlayerDashboard`, `Modals`).
+- **Hooks Customizados**: Lógica de jogo isolada em `useUnoGame` e inteligência artificial dos bots em `useBotAI`.
+- **Otimização**: Uso de `React.memo` para renderização de alta performance e gerenciamento eficiente de estado.
+- **Tecnologias**: React 18, TypeScript, Framer Motion, Lucide Icons e Vite.
+
+---
 
 ## 🚀 Como Executar o Projeto
 
@@ -39,28 +50,16 @@ Diferente do Uno clássico, esta versão foi projetada para ser rápida, estrat�
    ```bash
    git clone https://github.com/TauaneAlessandra/uno-no-mercy-web.git
    ```
-
-2. **Entre na pasta do projeto:**
-   ```bash
-   cd uno-no-mercy-web
-   ```
-
-3. **Instale as dependências:**
+2. **Instale as dependências:**
    ```bash
    npm install
    ```
-
-4. **Inicie o servidor de desenvolvimento:**
+3. **Inicie o servidor de desenvolvimento:**
    ```bash
    npm run dev
    ```
-
-5. **Acesse no seu navegador:**
-   `http://localhost:5173`
-
-## 🎨 Design & Performance
-
-O projeto foi otimizado para rodar suavemente em qualquer dispositivo, removendo efeitos pesados de desfoque e priorizando animações de alto desempenho. A estética segue o padrão "Dark Mode" com cores vibrantes que remetem à identidade visual do Uno No Mercy original.
+4. **Acesse no navegador:** `http://localhost:5173`
 
 ---
-Desenvolvido com 💢 por [Tauane](https://github.com/TauaneAlessandra)
+
+Desenvolvido com a força de 💢 por [Tauane](https://github.com/TauaneAlessandra)
